@@ -9,7 +9,7 @@ async function existingUserWithGivenEmail(email) {
   return result.rows[0];
 }
 
-async function createUser({ name, email, hashedPassword }) {
+async function createUser(name, email, hashedPassword) {
   const result = await connection.query(
     `INSERT INTO "users" ("name", "email", "password") VALUES ($1, $2, $3)`,
     [name, email, hashedPassword]

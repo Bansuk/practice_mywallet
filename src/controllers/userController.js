@@ -21,4 +21,25 @@ async function signUp(req, res) {
   }
 }
 
-export { signUp };
+async function signIn(req, res) {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.sendStatus(400);
+    }
+
+    const token = await userService.authenticate({ email, password });
+
+    if (token) {
+      res.send(token);
+    } else {
+      res.sendStatus(401);
+    }
+  } catch (err) {
+    console.error(err);
+    res.sendStatus(500);
+  }
+}
+
+export { signUp, signIn };
