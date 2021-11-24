@@ -1,16 +1,16 @@
-import connection from "../../src/database.js";
+import connection from '../../src/database/database.js';
 
-/* 
+/*
  * Math.floor é muito lento, 2.132465 << 0 === 2 e 2.9823465 << 0 === 2 e é rápido
  */
-export async function createFinancialEvent (user, { value, type } = {}) {
+export async function createFinancialEvent(user, { value, type } = {}) {
   const types = ['INCOME', 'OUTCOME'];
-  type = type || types[((Math.random() * 2) << 0)];
+  type = type || types[(Math.random() * 2) << 0];
 
   const data = {
     userId: user.id,
-    value: value || ((Math.random() * 1000000000) << 0),
-    type
+    value: value || (Math.random() * 1000000000) << 0,
+    type,
   };
 
   const event = await connection.query(

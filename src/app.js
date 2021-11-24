@@ -1,46 +1,18 @@
-import express from "express";
-import cors from "cors";
-import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
+import express from 'express';
+import cors from 'cors';
+import jwt from 'jsonwebtoken';
+import bcrypt from 'bcrypt';
+import connection from './database/database.js';
 
-import connection from "./database.js";
+import * as userController from './controllers/userController.js';
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.post("/sign-up", async (req, res) => {
-  try {
-    const { name, email, password } = req.body;
+app.post('/sign-up', userController.signUp);
 
-    if (!name || !email || !password) {
-      return res.sendStatus(400);
-    }
-
-    const existingUserWithGivenEmail = await connection.query(
-      `SELECT * FROM "users" WHERE "email"=$1`,
-      [email]
-    );
-
-    if (existingUserWithGivenEmail.rows[0]) {
-      return res.sendStatus(409);
-    }
-
-    const hashedPassword = bcrypt.hashSync(password, 12);
-
-    await connection.query(
-      `INSERT INTO "users" ("name", "email", "password") VALUES ($1, $2, $3)`,
-      [name, email, hashedPassword]
-    );
-
-    res.sendStatus(201);
-  } catch (err) {
-    console.error(err);
-    res.sendStatus(500);
-  }
-});
-
-app.post("/sign-in", async (req, res) => {
+app.post('/sign-in', async (req, res) => {
   try {
     const { email, password } = req.body;
 
@@ -57,12 +29,15 @@ app.post("/sign-in", async (req, res) => {
       return res.sendStatus(401);
     }
 
-    const token = jwt.sign({
-      id: user.rows[0].id
-    }, process.env.JWT_SECRET);
+    const token = jwt.sign(
+      {
+        id: user.rows[0].id,
+      },
+      process.env.JWT_SECRET
+    );
 
     res.send({
-      token
+      token,
     });
   } catch (err) {
     console.error(err);
@@ -70,9 +45,9 @@ app.post("/sign-in", async (req, res) => {
   }
 });
 
-app.post("/financial-events", async (req, res) => {
+app.post('/financial-events', async (req, res) => {
   try {
-    const authorization = req.headers.authorization || "";
+    const authorization = req.headers.authorization || '';
     const token = authorization.split('Bearer ')[1];
 
     if (!token) {
@@ -113,9 +88,9 @@ app.post("/financial-events", async (req, res) => {
   }
 });
 
-app.get("/financial-events", async (req, res) => {
+app.get('/financial-events', async (req, res) => {
   try {
-    const authorization = req.headers.authorization || "";
+    const authorization = req.headers.authorization || '';
     const token = authorization.split('Bearer ')[1];
 
     if (!token) {
@@ -142,9 +117,9 @@ app.get("/financial-events", async (req, res) => {
   }
 });
 
-app.get("/financial-events/sum", async (req, res) => {
+app.get('/financial-events/sum', async (req, res) => {
   try {
-    const authorization = req.headers.authorization || "";
+    const authorization = req.headers.authorization || '';
     const token = authorization.split('Bearer ')[1];
 
     if (!token) {
@@ -164,7 +139,11 @@ app.get("/financial-events/sum", async (req, res) => {
       [user.id]
     );
 
-    const sum = events.rows.reduce((total, event) => event.type === 'INCOME' ? total + event.value : total - event.value, 0);
+    const sum = events.rows.reduce(
+      (total, event) =>
+        event.type === 'INCOME' ? total + event.value : total - event.value,
+      0
+    );
 
     res.send({ sum });
   } catch (err) {
