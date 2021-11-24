@@ -1,15 +1,15 @@
-import bcrypt from "bcrypt";
-import faker from "faker";
-import jwt from "jsonwebtoken";
+import bcrypt from 'bcrypt';
+import faker from 'faker';
+import jwt from 'jsonwebtoken';
 
-import connection from "../../src/database.js";
+import connection from '../../src/database/database.js';
 
-export async function createUser ({ name, email, password } = {}) {
+export async function createUser({ name, email, password } = {}) {
   const data = {
     name: name || faker.name.findName(),
     email: email || faker.internet.email(),
-    password: password || "123456",
-    hashedPassword: bcrypt.hashSync(password || "123456", 10)
+    password: password || '123456',
+    hashedPassword: bcrypt.hashSync(password || '123456', 10),
   };
 
   const user = await connection.query(
@@ -22,15 +22,18 @@ export async function createUser ({ name, email, password } = {}) {
   return data;
 }
 
-export async function createToken ({ user } = {}) {
-  user = user || await createUser();
+export async function createToken({ user } = {}) {
+  user = user || (await createUser());
 
-  const token = jwt.sign({
-    id: user.id
-  }, process.env.JWT_SECRET);
+  const token = jwt.sign(
+    {
+      id: user.id,
+    },
+    process.env.JWT_SECRET
+  );
 
   return {
     user,
-    token
+    token,
   };
 }
